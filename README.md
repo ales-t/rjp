@@ -18,6 +18,28 @@ You could use `jq` for some of these tasks (and in fact, `jq` is a far more gene
 This is my attempt to learn a bit of Rust, don't take this tool too seriously. That being said,
 it is pretty quick and handy, at least for me.
 
+## Build & Installation
+
+Get `rust`:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+```
+
+Clone and build `rjp`:
+
+```bash
+git clone https://github.com/ales-t/rjp.git
+cd rjp
+cargo build --release
+```
+
+You fill find the binary in `target/release/rjp`. You can add it to your `PATH` e.g. like this:
+
+```bash
+export PATH="$(pwd)/target/release:$PATH"
+```
+
 ## Basic usage
 
 ```bash
