@@ -34,7 +34,7 @@ cd rjp
 cargo build --release
 ```
 
-You fill find the binary in `target/release/rjp`. You can add it to your `PATH` e.g. like this:
+You will find the binary in `target/release/rjp`. You can add it to your `PATH` e.g. like this:
 
 ```bash
 export PATH="$(pwd)/target/release:$PATH"
