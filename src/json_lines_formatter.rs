@@ -2,8 +2,8 @@
 // Based on PrettyFormatter from serde, copies some code from: https://github.com/serde-rs/json
 // (Licensed dually as Apache and MIT so a notice like this should be fine.)
 
-use std::io;
 use serde_json::ser::Formatter;
+use std::io;
 
 #[derive(Clone, Debug)]
 pub struct JsonLinesFormatter {}
@@ -42,7 +42,7 @@ impl Formatter for JsonLinesFormatter {
     where
         W: ?Sized + io::Write,
     {
-        if ! first {
+        if !first {
             writer.write_all(b", ")?;
         }
         Ok(())
@@ -77,7 +77,7 @@ impl Formatter for JsonLinesFormatter {
     where
         W: ?Sized + io::Write,
     {
-        if ! first {
+        if !first {
             writer.write_all(b", ")?;
         }
         Ok(())

@@ -6,7 +6,7 @@ pub struct DropFields {
 
 impl DropFields {
     pub fn new(fields: Vec<String>) -> Self {
-        DropFields { fields}
+        DropFields { fields }
     }
 }
 

@@ -17,18 +17,20 @@ impl Processor for Merge {
                 Ok(other) => {
                     instance.extend(other.into_iter());
                     ProcessorResult::Ok(instance)
-                },
-                Err(error) => ProcessorResult::Error(error)
+                }
+                Err(error) => ProcessorResult::Error(error),
             }
         } else {
-            ProcessorResult::Error(RjpError::BadInput(String::from("Stream to merge is too short!")))
+            ProcessorResult::Error(RjpError::BadInput(String::from(
+                "Stream to merge is too short!",
+            )))
         }
     }
 }
 
 impl Drop for Merge {
     fn drop(&mut self) {
-        if let Some(_) = self.stream_to_merge.next() {
+        if self.stream_to_merge.next().is_some() {
             eprintln!("[rjp] WARNING: stream to merge is longer than the input.");
         }
     }

@@ -1,8 +1,8 @@
 use crate::types::*;
 
+use crate::parse_json::*;
 use crate::tsv_to_json::*;
 use crate::txt_to_json::*;
-use crate::parse_json::*;
 
 use crate::add_fields::*;
 use crate::drop_fields::*;
@@ -18,8 +18,10 @@ use crate::output_tsv::*;
 
 use crate::util::*;
 
-fn build_deserializer(commands: &mut Vec<String>) -> Result<Box<dyn InstanceDeserializer>, RjpError> {
-    if commands.len() > 0 {
+fn build_deserializer(
+    commands: &mut Vec<String>,
+) -> Result<Box<dyn InstanceDeserializer>, RjpError> {
+    if !commands.is_empty() {
         let cmd = commands.remove(0);
         match cmd.as_str() {
             "txt_to_json" | "from_txt" => {
@@ -28,7 +30,9 @@ fn build_deserializer(commands: &mut Vec<String>) -> Result<Box<dyn InstanceDese
             }
             "tsv_to_json" | "from_tsv" => {
                 check_config(commands, 1)?;
-                Ok(Box::new(TsvToJson::new(parse_comma_delimited_list(commands.remove(0).as_str()))))
+                Ok(Box::new(TsvToJson::new(parse_comma_delimited_list(
+                    commands.remove(0).as_str(),
+                ))))
             }
             _ => {
                 commands.insert(0, cmd); // not a known input parser
@@ -40,21 +44,23 @@ fn build_deserializer(commands: &mut Vec<String>) -> Result<Box<dyn InstanceDese
     }
 }
 
-pub fn build_input_stream(commands: &mut Vec<String>, reader_iter: InputStreamIterator)
-    -> Result<InstanceIterator, RjpError> {
+pub fn build_input_stream(
+    commands: &mut Vec<String>,
+    reader_iter: InputStreamIterator,
+) -> Result<InstanceIterator, RjpError> {
     let deserializer = build_deserializer(commands)?;
-    Ok(Box::new(reader_iter.map(move |maybe_str| {
-        match maybe_str {
+    Ok(Box::new(reader_iter.map(
+        move |maybe_str| match maybe_str {
             Ok(instance_str) => deserializer.deserialize(instance_str),
             Err(error) => Err(RjpError::UnhandledError(error.to_string())),
-        }
-    })))
+        },
+    )))
 }
 
 pub fn build_processor_chain(commands: &mut Vec<String>) -> Result<ProcessorList, RjpError> {
     let mut processors: ProcessorList = Vec::new();
 
-    while commands.len() > 0 {
+    while !commands.is_empty() {
         let cmd = commands.remove(0);
         match cmd.as_str() {
             "rename" | "rnm" => {
@@ -113,17 +119,17 @@ pub fn build_processor_chain(commands: &mut Vec<String>) -> Result<ProcessorList
             _ => {
                 commands.insert(0, cmd); // not a known processor
                 break;
-            },
+            }
         }
-
     }
 
     Ok(processors)
 }
 
-pub fn build_serializer(commands: &mut Vec<String>)
-    -> Result<Box<dyn InstanceSerializer>, RjpError> {
-    if commands.len() > 0 {
+pub fn build_serializer(
+    commands: &mut Vec<String>,
+) -> Result<Box<dyn InstanceSerializer>, RjpError> {
+    if !commands.is_empty() {
         match commands[0].as_str() {
             "to_tsv" | "json_to_tsv" | "tsv" => {
                 commands.remove(0);
@@ -132,8 +138,11 @@ pub fn build_serializer(commands: &mut Vec<String>)
                 return Ok(Box::new(OutputTsv::new(fields)));
             }
             _ => {
-                return Err(RjpError::BadConfig(format!("unknown command: {}", commands[0].as_str())));
-            },
+                return Err(RjpError::BadConfig(format!(
+                    "unknown command: {}",
+                    commands[0].as_str()
+                )));
+            }
         }
     }
 

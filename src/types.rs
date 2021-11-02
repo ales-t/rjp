@@ -1,6 +1,6 @@
 use serde_json::Value;
-use std::io;
 use std::fmt::Display;
+use std::io;
 
 #[derive(Debug)]
 pub enum RjpError {
