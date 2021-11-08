@@ -18,9 +18,11 @@ impl Processor for ToNumber {
             let val = instance.get(old_name).expect("error").to_string();
             let parsed_val: Value = serde_json::from_str(val.as_str()).unwrap();
 
-            if ! parsed_val.is_number() {
-                return ProcessorResult::Error(
-                    RjpError::BadInput(format!("could not parse as number: {}", val)));
+            if !parsed_val.is_number() {
+                return ProcessorResult::Error(RjpError::BadInput(format!(
+                    "could not parse as number: {}",
+                    val
+                )));
             }
 
             instance.insert(new_name.clone(), parsed_val);

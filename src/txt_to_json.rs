@@ -8,7 +8,9 @@ pub struct TxtToJson {
 
 impl TxtToJson {
     pub fn new(field_name: &str) -> Self {
-        TxtToJson { field_name: String::from(field_name) }
+        TxtToJson {
+            field_name: String::from(field_name),
+        }
     }
 }
 

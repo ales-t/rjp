@@ -1,7 +1,7 @@
 use regex::Regex;
 
-use crate::types::*;
 use crate::extract_items::ExtractedItem::{ArrayItem, ObjectItem};
+use crate::types::*;
 
 #[derive(Debug)]
 enum ExtractedItem {
@@ -17,12 +17,14 @@ impl ExtractItems {
     pub fn new(field_mapping: FieldMapping) -> Result<Self, RjpError> {
         let mut parsed_field_mapping: Vec<(ExtractedItem, String)> = Vec::new();
 
-        for (item_descr, new_name) in &field_mapping {
+        for (item_descr, new_name) in field_mapping {
             let parsed_descr = ExtractItems::parse_item_description(&item_descr)?;
-            parsed_field_mapping.push((parsed_descr, new_name.clone()));
+            parsed_field_mapping.push((parsed_descr, new_name));
         }
 
-        Ok(ExtractItems { field_mapping: parsed_field_mapping })
+        Ok(ExtractItems {
+            field_mapping: parsed_field_mapping,
+        })
     }
 
     fn parse_item_description(item_descr: &str) -> Result<ExtractedItem, RjpError> {
@@ -37,9 +39,11 @@ impl ExtractItems {
             } else {
                 Ok(ObjectItem(field_name, key))
             }
-
         } else {
-            Err(RjpError::BadConfig(format!("malformed item description: {}", item_descr)))
+            Err(RjpError::BadConfig(format!(
+                "malformed item description: {}",
+                item_descr
+            )))
         }
     }
 }

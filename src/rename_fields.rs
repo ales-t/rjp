@@ -1,7 +1,8 @@
 use crate::types::*;
 
 pub struct RenameFields {
-    field_mapping: FieldMapping,}
+    field_mapping: FieldMapping,
+}
 
 impl RenameFields {
     pub fn new(field_mapping: FieldMapping) -> Self {
