@@ -132,7 +132,7 @@ Aliases: `lj`, `left_join`
 
 ### Merge
 
-Merge wih another input stream line-by-line, with optional file conversion.
+Merge with another input stream line-by-line, with optional file conversion.
 
 Aliases: `merge`, `mrg`
 
@@ -173,7 +173,7 @@ Examples:
 
 ## Output conversions
 
-By default, `rjp` will produce JSON-lines. You can change that with a file conversion.
+By default, `rjp` will produce JSON lines. You can change that with a file conversion.
 
 ### TSV
 
