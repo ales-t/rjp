@@ -2,8 +2,6 @@ use std::env;
 use std::io;
 use std::io::Write;
 
-use rayon::iter::IntoParallelRefIterator;
-use rayon::iter::ParallelIterator;
 use rjp::builders::*;
 use rjp::types::*;
 use rjp::util;
@@ -83,16 +81,8 @@ fn main_entry(
     let mut removed = 0;
 
     // process the instances
-    let batch_size = 10000;
-    let mut batch: Vec<Instance> = Vec::with_capacity(batch_size);
-
-    for maybe_instance in in_stream {
-        if batch.len() < batch_size {
-            batch.push(maybe_instance?);
-        } else {
-            batch.par_iter().map(|mut instance| run_processor_chain(instance.to_owned(), &mut processors));
-        }
-    }
+    // let batch_size = 10000;
+    // let mut batch: Vec<Instance> = Vec::with_capacity(batch_size);
 
     for maybe_instance in in_stream {
         total += 1;
