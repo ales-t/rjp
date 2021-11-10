@@ -1,3 +1,7 @@
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
+use serde::de::IntoDeserializer;
+
 use crate::types::*;
 
 use crate::parse_json::*;
@@ -48,7 +52,24 @@ pub fn build_input_stream(
     commands: &mut Vec<String>,
     reader_iter: InputStreamIterator,
 ) -> Result<InstanceIterator, RjpError> {
-    let deserializer = build_deserializer(commands)?;
+    let deserializer = build_deserializer(commands)? as Box<dyn IntoDeserializer + Sync>;
+
+    let batch_size = 10000;
+    let mut batch: Vec<String> = Vec::with_capacity(batch_size);
+
+    for maybe_line in reader_iter {
+        match maybe_line {
+            Ok(instance_str) => {
+                if batch.len() < batch_size {
+                    batch.push(instance_str);
+                } else {
+                    batch.par_iter().map(|i| deserializer.deserialize(instance_str));
+                }
+            }
+            Err(error) => return Err(RjpError::UnhandledError(error.to_string())),
+        }
+    }
+
     Ok(Box::new(reader_iter.map(
         move |maybe_str| match maybe_str {
             Ok(instance_str) => deserializer.deserialize(instance_str),
