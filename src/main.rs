@@ -2,6 +2,8 @@ use std::env;
 use std::io;
 use std::io::Write;
 
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
 use rjp::builders::*;
 use rjp::types::*;
 use rjp::util;
@@ -27,6 +29,40 @@ fn main() -> Result<(), RjpError> {
     Ok(())
 }
 
+
+fn run_processor_chain(mut instance: Instance, processors: &mut ProcessorList
+) -> Result<Option<Instance>, RjpError> {
+    for proc in processors {
+        match proc.process(instance) {
+            ProcessorResult::Ok(processed) => instance = processed,
+            ProcessorResult::Error(err) => return Err(err),
+            ProcessorResult::Remove => {
+                return Ok(None);
+            }
+        }
+    }
+
+    Ok(Some(instance))
+}
+
+
+fn write_instance(instance: Instance, writer: &mut impl Write, serializer: &Box<dyn InstanceSerializer>
+) -> Result<(), RjpError> {
+    let serialized = serializer.serialize(instance)?;
+
+    // gracefully handle potential errors on write
+    if let Err(err) = writer.write((serialized + "\n").as_bytes()) {
+        return if err.kind() == std::io::ErrorKind::BrokenPipe {
+            Err(RjpError::BrokenPipeError())
+        } else {
+            Err(RjpError::UnhandledError(err.to_string()))
+        };
+    }
+
+    Ok(())
+}
+
+
 fn main_entry(
     mut commands: Vec<String>,
     in_stream: InstanceIterator,
@@ -47,36 +83,35 @@ fn main_entry(
     let mut removed = 0;
 
     // process the instances
+    let batch_size = 10000;
+    let mut batch: Vec<Instance> = Vec::with_capacity(batch_size);
+
+    for maybe_instance in in_stream {
+        if batch.len() < batch_size {
+            batch.push(maybe_instance?);
+        } else {
+            batch.par_iter().map(|mut instance| run_processor_chain(instance.to_owned(), &mut processors));
+        }
+    }
+
     for maybe_instance in in_stream {
         total += 1;
 
-        let mut maybe_filtered = Some(maybe_instance?);
-
-        for proc in &mut processors {
-            match proc.process(maybe_filtered.unwrap()) {
-                ProcessorResult::Ok(processed) => maybe_filtered = Some(processed),
-                ProcessorResult::Error(err) => return Err(err),
-                ProcessorResult::Remove => {
-                    maybe_filtered = None;
-                    break;
-                }
-            }
-        }
+        let maybe_filtered = run_processor_chain(maybe_instance?, &mut processors)?;
 
         if let Some(instance) = maybe_filtered {
-            let serialized = serializer.serialize(instance)?;
-
-            // gracefully handle potential errors on write
-            if let Err(err) = writer.write((serialized + "\n").as_bytes()) {
-                return if err.kind() == std::io::ErrorKind::BrokenPipe {
-                    Ok((total, removed))
-                } else {
-                    Err(RjpError::UnhandledError(err.to_string()))
-                };
+            match write_instance(instance, &mut writer, &serializer) {
+                Err(err) => {
+                    match err {
+                        RjpError::BrokenPipeError() => return Ok((total, removed)),
+                        RjpError::UnhandledError(msg) => return Err(RjpError::UnhandledError(msg)),
+                        _ => unreachable!(),
+                    }
+                }
+                Ok(()) => (),
             }
         } else {
             removed += 1;
-            continue;
         }
     }
 

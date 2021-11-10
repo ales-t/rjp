@@ -7,6 +7,7 @@ pub enum RjpError {
     BadInput(String),
     BadConfig(String),
     UnhandledError(String),
+    BrokenPipeError(),
 }
 
 impl Display for RjpError {
@@ -15,6 +16,7 @@ impl Display for RjpError {
             RjpError::BadConfig(msg) => write!(f, "[rjp] Configuration error. {}", &msg),
             RjpError::BadInput(msg) => write!(f, "[rjp] Input error. {}", &msg),
             RjpError::UnhandledError(msg) => write!(f, "[rjp] Unhandled error. {}", &msg),
+            RjpError::BrokenPipeError() => write!(f, "[rjp] Broken pipe."),  // not used
         }
     }
 }
