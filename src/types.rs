@@ -47,6 +47,6 @@ pub trait InstanceSerializer {
     fn serialize(&self, instance: Instance) -> Result<String, RjpError>;
 }
 
-pub trait InstanceDeserializer {
-    fn deserialize(&self, instance_str: String) -> Result<Instance, RjpError>;
+pub trait InstanceDeserializer: Sync {
+    fn deserialize(&self, instance_str: &str) -> Result<Instance, RjpError>;
 }

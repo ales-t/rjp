@@ -1,6 +1,7 @@
+use std::collections::VecDeque;
+
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
-use serde::de::IntoDeserializer;
 
 use crate::types::*;
 
@@ -48,34 +49,65 @@ fn build_deserializer(
     }
 }
 
+
+pub struct BatchedDeserializer {
+    batch: Vec<String>,
+    processed: VecDeque<Result<Instance, RjpError>>,
+    deserializer: Box<dyn InstanceDeserializer>,
+    input_iter: InputStreamIterator,
+    batch_size: usize,
+}
+
+impl BatchedDeserializer {
+    pub fn new(
+        input_iter: InputStreamIterator,
+        deserializer: Box<dyn InstanceDeserializer>,
+        batch_size: usize)
+    -> Self {
+        let batch: Vec<String> = Vec::with_capacity(batch_size);
+        let processed = VecDeque::new();
+        BatchedDeserializer { batch, processed, deserializer, input_iter, batch_size }
+    }
+
+    fn fill_batch(&mut self) -> Result<(), RjpError> {
+        while self.batch.len() < self.batch_size {
+            let maybe_line = self.input_iter.next();
+            if let Some(line) = maybe_line {
+                match line {
+                    Ok(instance_str) => {
+                        self.batch.push(instance_str);
+                    }
+                    Err(error) => return Err(RjpError::UnhandledError(error.to_string())),
+                }
+            } else {
+                break;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Iterator for BatchedDeserializer {
+    type Item = Result<Instance, RjpError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.processed.len() == 0 {
+            if let Err(error) = self.fill_batch() {
+                return Some(Err(error));
+            }
+            self.processed = self.batch.par_iter().map(|i| self.deserializer.deserialize(i)).collect();
+            self.batch.clear();
+        }
+        self.processed.pop_front()
+    }
+}
+
 pub fn build_input_stream(
     commands: &mut Vec<String>,
     reader_iter: InputStreamIterator,
 ) -> Result<InstanceIterator, RjpError> {
-    let deserializer = build_deserializer(commands)? as Box<dyn IntoDeserializer + Sync>;
-
-    let batch_size = 10000;
-    let mut batch: Vec<String> = Vec::with_capacity(batch_size);
-
-    for maybe_line in reader_iter {
-        match maybe_line {
-            Ok(instance_str) => {
-                if batch.len() < batch_size {
-                    batch.push(instance_str);
-                } else {
-                    batch.par_iter().map(|i| deserializer.deserialize(instance_str));
-                }
-            }
-            Err(error) => return Err(RjpError::UnhandledError(error.to_string())),
-        }
-    }
-
-    Ok(Box::new(reader_iter.map(
-        move |maybe_str| match maybe_str {
-            Ok(instance_str) => deserializer.deserialize(instance_str),
-            Err(error) => Err(RjpError::UnhandledError(error.to_string())),
-        },
-    )))
+    let deserializer = build_deserializer(commands)?;
+    Ok(Box::new(BatchedDeserializer::new(reader_iter, deserializer, 10000)))
 }
 
 pub fn build_processor_chain(commands: &mut Vec<String>) -> Result<ProcessorList, RjpError> {

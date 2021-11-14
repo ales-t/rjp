@@ -15,9 +15,9 @@ impl TxtToJson {
 }
 
 impl InstanceDeserializer for TxtToJson {
-    fn deserialize(&self, instance_str: String) -> Result<Instance, RjpError> {
+    fn deserialize(&self, instance_str: &str) -> Result<Instance, RjpError> {
         let mut record = Instance::default();
-        record.insert(self.field_name.clone(), Value::String(instance_str));
+        record.insert(self.field_name.clone(), Value::String(instance_str.to_string()));
 
         Ok(record)
     }

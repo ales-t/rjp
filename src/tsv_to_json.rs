@@ -13,7 +13,7 @@ impl TsvToJson {
 }
 
 impl InstanceDeserializer for TsvToJson {
-    fn deserialize(&self, instance_str: String) -> Result<Instance, RjpError> {
+    fn deserialize(&self, instance_str: &str) -> Result<Instance, RjpError> {
         let mut record = Instance::default();
 
         let values: Vec<String> = instance_str.split('\t').map(String::from).collect();
