@@ -13,8 +13,13 @@ impl RenameFields {
 impl Processor for RenameFields {
     fn process(&mut self, mut instance: Instance) -> ProcessorResult {
         for (old_name, new_name) in &self.field_mapping {
-            let val = instance.remove(old_name).expect("error");
-            instance.insert(new_name.clone(), val);
+            if let Some(val) = instance.remove(old_name) {
+                instance.insert(new_name.clone(), val);
+            } else {
+                return ProcessorResult::Error(RjpError::BadInput(
+                    format!("missing field {}", old_name)
+                ));
+            }
         }
 
         ProcessorResult::Ok(instance)
