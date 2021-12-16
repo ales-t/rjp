@@ -27,9 +27,10 @@ impl Processor for ToNumber {
 
                 instance.insert(new_name.clone(), parsed_val);
             } else {
-                return ProcessorResult::Error(RjpError::BadInput(
-                    format!("missing field {}", old_name)
-                ));
+                return ProcessorResult::Error(RjpError::BadInput(format!(
+                    "missing field {}",
+                    old_name
+                )));
             }
         }
 

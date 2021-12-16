@@ -1,20 +1,19 @@
 use crate::types::*;
 
-use crate::parse_json::*;
-use crate::tsv_to_json::*;
-use crate::txt_to_json::*;
+use crate::pipeline::output_json::*;
+use crate::pipeline::output_tsv::*;
+use crate::pipeline::parse_json::*;
+use crate::pipeline::tsv_to_json::*;
+use crate::pipeline::txt_to_json::*;
 
-use crate::add_fields::*;
-use crate::drop_fields::*;
-use crate::extract_items::*;
-use crate::join::*;
-use crate::merge::*;
-use crate::rename_fields::*;
-use crate::select_fields::*;
-use crate::to_number::*;
-
-use crate::output_json::*;
-use crate::output_tsv::*;
+use crate::processor::add_fields::*;
+use crate::processor::drop_fields::*;
+use crate::processor::extract_items::*;
+use crate::processor::join::*;
+use crate::processor::merge::*;
+use crate::processor::rename_fields::*;
+use crate::processor::select_fields::*;
+use crate::processor::to_number::*;
 
 use crate::util::*;
 

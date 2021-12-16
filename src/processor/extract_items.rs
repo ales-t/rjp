@@ -1,7 +1,7 @@
 use regex::Regex;
 
-use crate::extract_items::ExtractedItem::{ArrayItem, ObjectItem};
 use crate::types::*;
+use ExtractedItem::{ArrayItem, ObjectItem};
 
 #[derive(Debug)]
 enum ExtractedItem {
