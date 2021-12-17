@@ -11,13 +11,7 @@ mod tests {
         command: &str,
         output_file: &str,
     ) -> (String, String) {
-        // Runs all tests in the `tests` directory. This assumes that the directory `tests` contains multiple
-        // directories, each with at least two files: `command` and `output`. The command is executed and
-        // compared with the output (assert). The test is run from the top-level project directory
-        // but arguments in the command ending with `.json` and `.tsv` are automatically prefixed
-        // with the path to the subdirectory. The first parameter of the command is the file that's
-        // redirected to the worker (imagine prefixing the whole command with a `<`).
-        // To add more tests, simply copy one of the existing folders.
+        // Runs a test given an input file a command and a target output file against which to compare the result
 
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new("tests"));
 
@@ -75,13 +69,10 @@ mod tests {
         }
         let output_goal = fs::read_to_string(output_file).unwrap();
 
-        // we could do an assert on the whole string but this gives more information
-        let output_lines = output.split('\n').collect::<Vec<&str>>();
-        let output_goal_lines = output_goal.split('\n').collect::<Vec<&str>>();
-        assert_eq!(output_lines.len(), output_goal_lines.len());
-        for (left, right) in output_lines.into_iter().zip(output_goal_lines) {
-            assert_eq!(left, right);
-        }
+        let output_lines = output.split('\n');
+        let output_goal_lines = output_goal.split('\n');
+        // assert individual lines
+        assert!(output_lines.eq(output_goal_lines));
 
         return (output, output_goal);
     }
