@@ -16,9 +16,10 @@ impl Processor for RenameFields {
             if let Some(val) = instance.remove(old_name) {
                 instance.insert(new_name.clone(), val);
             } else {
-                return ProcessorResult::Error(RjpError::BadInput(
-                    format!("missing field {}", old_name)
-                ));
+                return ProcessorResult::Error(RjpError::BadInput(format!(
+                    "missing field {}",
+                    old_name
+                )));
             }
         }
 
