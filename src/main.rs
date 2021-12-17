@@ -1,5 +1,5 @@
 use rjp::builders::*;
-use rjp::main_worker::*;
+use rjp::pipeline::main_worker::*;
 use rjp::types::*;
 use rjp::util;
 use std::env;

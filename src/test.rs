@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::builders::*;
-    use crate::main_worker::*;
+    use crate::pipeline::main_worker::*;
     use crate::util;
     use std::path::Path;
     use std::{fs, io};
