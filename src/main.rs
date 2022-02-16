@@ -1,17 +1,35 @@
+use clap::ArgEnum;
+use clap::Parser;
 use rjp::builders::*;
 use rjp::pipeline::main_worker::*;
 use rjp::types::*;
 use rjp::util;
-use std::env;
 use std::io;
+
+/// Rapid JSON-lines processor
+#[derive(Parser, Debug)]
+#[clap(version, about, long_about = None)]
+struct Args {
+    /// How to handle lines with errors
+    #[clap(arg_enum, default_value = "stop")]
+    errors: ErrorHandling,
+
+    /// Commands
+    commands: Vec<String>,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Debug)]
+enum ErrorHandling {
+    Keep,
+    Skip,
+    Stop,
+}
 
 #[termination::display]
 fn main() -> Result<(), RjpError> {
-    // bootstraps the program from command line
+    let args = Args::parse();
 
-    let mut commands: Vec<String> = env::args().collect();
-    // pop program name
-    commands.remove(0);
+    let mut commands: Vec<String> = args.commands.clone();
 
     // parse input stream
     let in_stream = build_input_stream(&mut commands, util::lines_from_stdin())?;
